@@ -2,7 +2,7 @@
  * This program source code file is part of KiCad, a free EDA CAD application.
  *
  * Copyright (C) 1992-2016 Jean-Pierre Charras <jp.charras at wanadoo.fr>
- * Copyright (C) 1992-2018 KiCad Developers, see AUTHORS.txt for contributors.
+ * Copyright (C) 1992-2021 KiCad Developers, see AUTHORS.txt for contributors.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -300,6 +300,19 @@ bool GERBVIEW_FRAME::Read_EXCELLON_File( const wxString& aFullFileName )
     return success;
 }
 
+
+void EXCELLON_IMAGE::ResetDefaultValues()
+{
+    GERBER_FILE_IMAGE::ResetDefaultValues();
+    SelectUnits( false );       // Default unit = inch
+
+    // Files using non decimal can use No Trailing zeros or No leading Zeros
+    // Unfortunately, the identifier (INCH,TZ or INCH,LZ for instance) is not
+    // always set in drill files.
+    // The option leading zeros looks like more frequent, so use this default
+    m_NoTrailingZeros = true;
+}
+
 /*
  * Read a EXCELLON file.
  * Gerber classes are used because there is likeness between Gerber files
@@ -312,7 +325,6 @@ bool GERBVIEW_FRAME::Read_EXCELLON_File( const wxString& aFullFileName )
  *   integer 2.4 format in imperial units,
  *   integer 3.2 or 3.3 format (metric units).
  */
-
 bool EXCELLON_IMAGE::LoadFile( const wxString & aFullFileName )
 {
     // Set the default parmeter values:
@@ -373,7 +385,8 @@ bool EXCELLON_IMAGE::LoadFile( const wxString & aFullFileName )
                 }
                 break;
 
-            case 'T': // Tool command
+            case 'T':               // Select Tool command (can also create
+                                    // the tool with an embedded definition)
                 Select_Tool( text );
                 break;
 
@@ -479,8 +492,7 @@ bool EXCELLON_IMAGE::Execute_HEADER_And_M_Command( char*& text )
         if( *text != ',' )
         {
             // No TZ or LZ specified. Should be a decimal format
-            // but this is not always the case. Use default TZ setting as default
-            m_NoTrailingZeros = false;
+            // but this is not always the case. Use our default setting
             break;
         }
 
@@ -724,14 +736,19 @@ bool EXCELLON_IMAGE::Select_Tool( char*& text )
             dcode_id = TOOLS_MAX_COUNT - 1;
 
         m_Current_Tool = dcode_id;
-        D_CODE* currDcode = GetDCODEOrCreate( dcode_id, true );
+        D_CODE* currDcode = GetDCODE( dcode_id );
 
-        if( currDcode == NULL && tool_id > 0 )   // if the definition is embedded, enter it
+        // if nopt existing, and the definition is embedded, create it
+        if( currDcode == NULL && tool_id > 0 )
         {
             text = startline;   // text starts at the beginning of the command
             readToolInformation( text );
             currDcode = GetDCODE( dcode_id );
         }
+
+        // If the Tool is really not existing, create a dummy tool
+        if( !currDcode )
+            currDcode = GetDCODEOrCreate( dcode_id, true );
 
         if( currDcode )
             currDcode->m_InUse = true;
