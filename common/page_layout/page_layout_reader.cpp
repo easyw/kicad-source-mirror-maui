@@ -128,13 +128,13 @@ void PAGE_LAYOUT_READER_PARSER::Parse( WORKSHEET_LAYOUT* aLayout )
         if( token == T_LEFT )
             token = NextTok();
 
-        if( token == T_kicad_wks || token == T_drawing_sheet )
+        /* if( token == T_kicad_wks || token == T_drawing_sheet )  // maui removing building issue
         {
             THROW_PARSE_ERROR( _( "KiCad was unable to open this file because it was created with "
                                   "a more recent version than the one you are running.\n\n"
                                   "To open it you will need to upgrade KiCad to 5.99 or later." ),
                                CurSource(), CurLine(), CurLineNumber(), CurOffset() );
-        }
+        } */
 
         if( token == T_page_layout )
             continue;
