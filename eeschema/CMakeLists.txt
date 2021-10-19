@@ -304,7 +304,7 @@ if( APPLE )
         MACOSX_PACKAGE_LOCATION Resources
         )
     set( MACOSX_BUNDLE_ICON_FILE eeschema.icns )
-    set( MACOSX_BUNDLE_GUI_IDENTIFIER org.kicad-pcb.kicad )
+    set( MACOSX_BUNDLE_GUI_IDENTIFIER org.kicad.kicad )
     set( MACOSX_BUNDLE_NAME eeschema )
 endif()
 
@@ -423,11 +423,13 @@ if( APPLE )
         )
 
     if( KICAD_SPICE )
-        # bundle libngspice, codemodels and scripts
-        get_filename_component( REAL_LIBNGSPICE ${NGSPICE_LIBRARY} REALPATH )
-        get_filename_component( LIBNGSPICE_PATH ${REAL_LIBNGSPICE} DIRECTORY )
-        install( FILES "${REAL_LIBNGSPICE}"
-                 DESTINATION "${OSX_BUNDLE_INSTALL_PLUGIN_DIR}/sim" )
+        # bundle libngspice and codemodels
+        get_filename_component( ABS_LIBNGSPICE ${NGSPICE_LIBRARY} ABSOLUTE )
+        get_filename_component( LIBNGSPICE_PATH ${ABS_LIBNGSPICE} DIRECTORY )
+
+        install( DIRECTORY "${LIBNGSPICE_PATH}/"
+                DESTINATION "${OSX_BUNDLE_INSTALL_PLUGIN_DIR}/sim"
+                FILES_MATCHING PATTERN "*.dylib")
         install( DIRECTORY "${LIBNGSPICE_PATH}/ngspice"
                  DESTINATION "${OSX_BUNDLE_INSTALL_PLUGIN_DIR}/sim" )
         install( DIRECTORY "${LIBNGSPICE_PATH}/../share/ngspice/scripts"
