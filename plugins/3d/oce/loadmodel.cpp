@@ -28,12 +28,20 @@
 #include <cstring>
 #include <map>
 #include <vector>
-#include <wx/string.h>
-#include <wx/wfstream.h>
-
-#if ( defined( DEBUG_OCE ) && DEBUG_OCE > 3 )
 #include <wx/filename.h>
-#endif
+#include <wx/stdpaths.h>
+#include <wx/string.h>
+// #include <wx/utils.h>
+#include <wx/wfstream.h>
+#include <wx/log.h>
+// #include <wx/zipstrm.h>
+
+/* #if ( defined( DEBUG_OCE ) && DEBUG_OCE > 3 )
+#include <wx/filename.h>
+#endif */
+
+// #include <decompress.hpp>
+#include "../../thirdparty/gzip-hpp/decompress.hpp" // maui
 
 #include <TDocStd_Document.hxx>
 #include <TopoDS.hxx>
@@ -71,7 +79,7 @@
 #include <TDF_LabelSequence.hxx>
 #include <TDF_ChildIterator.hxx>
 
-#include <Standard_Version.hxx>
+// #include <Standard_Version.hxx>
 
 #include "plugins/3dapi/ifsg_all.h"
 
@@ -263,18 +271,25 @@ struct DATA
 enum FormatType
 {
     FMT_NONE = 0,
-    FMT_STEP = 1,
-    FMT_IGES = 2
+    FMT_STEP,
+    FMT_STPZ,
+    FMT_IGES
 };
 
 
 FormatType fileType( const char* aFileName )
 {
-    wxString fname( wxString::FromUTF8Unchecked( aFileName ) );
-    wxFileInputStream ifile( fname );
+    wxFileName fname( wxString::FromUTF8Unchecked( aFileName ) );
+    wxFileInputStream ifile( fname.GetFullPath() );
 
+    // wxLogMessage( "model name %s", aFileName);  // maui debug
+    
     if( !ifile.IsOk() )
         return FMT_NONE;
+   
+    if( fname.GetExt().MakeUpper().EndsWith( "STPZ" ) ||
+            fname.GetExt().MakeUpper().EndsWith( "GZ" ) )
+        return FMT_STPZ;
 
     char iline[82];
     memset( iline, 0, 82 );
@@ -452,6 +467,49 @@ bool readSTEP( Handle(TDocStd_Document)& m_doc, const char* fname )
     return true;
 }
 
+bool readSTEPZ( Handle(TDocStd_Document)& m_doc, const char* aFileName )
+{
+    wxFileName fname( wxString::FromUTF8Unchecked( aFileName ) );
+    wxFileInputStream ifile( fname.GetFullPath() );
+
+    wxFileName outFile( fname );
+
+    outFile.SetPath( wxStandardPaths::Get().GetTempDir() );
+    outFile.SetExt( "STEP" );
+
+    wxFileOffset size = ifile.GetLength();
+
+    // wxLogMessage( "model name %s", aFileName);  // maui debug
+
+    if( size == wxInvalidOffset )
+        return false;
+
+    {
+        wxFileOutputStream ofile( outFile.GetFullPath() );
+
+        if( !ofile.IsOk() )
+            return false;
+
+        char *buffer = new char[size];
+
+        ifile.Read( buffer, size);
+        std::string expanded = gzip::decompress( buffer, size );
+
+        delete[] buffer;
+        ofile.Write( expanded.data(), expanded.size() );
+        ofile.Close();
+        
+       
+    }
+
+    bool retval = readSTEP( m_doc, outFile.GetFullPath().mb_str() );
+    
+    // Cleanup our temporary file
+    wxRemoveFile( outFile.GetFullPath() );
+
+    return retval;
+}
+
 
 SCENEGRAPH* LoadModel( char const* filename )
 {
@@ -460,6 +518,8 @@ SCENEGRAPH* LoadModel( char const* filename )
     Handle(XCAFApp_Application) m_app = XCAFApp_Application::GetApplication();
     m_app->NewDocument( "MDTV-XCAF", data.m_doc );
     FormatType modelFmt = fileType( filename );
+
+    // wxLogMessage( "model name %s, type %i", filename, modelFmt); // maui debug
 
     switch( modelFmt )
     {
@@ -472,6 +532,11 @@ SCENEGRAPH* LoadModel( char const* filename )
 
         case FMT_STEP:
             if( !readSTEP( data.m_doc, filename ) )
+                return NULL;
+            break;
+
+        case FMT_STPZ:
+            if( !readSTEPZ( data.m_doc, filename ) )
                 return NULL;
             break;
 
@@ -556,14 +621,17 @@ bool processShell( const TopoDS_Shape& shape, DATA& data, SGNODE* parent,
 bool processSolid( const TopoDS_Shape& shape, DATA& data, SGNODE* parent,
     std::vector< SGNODE* >* items )
 {
-    TDF_Label label;
+    // TDF_Label label;
+    TDF_Label label = data.m_assy->FindShape( shape, Standard_False );
     data.hasSolid = true;
     std::string partID;
     Quantity_Color col;
     Quantity_Color* lcolor = NULL;
 
     // Search the whole model first to make sure something exists (may or may not have color)
-    if( !data.m_assy->Search( shape, label ) )
+    // if( !data.m_assy->Search( shape, label ) )
+    if( label.IsNull() )
+
     {
         static int i = 0;
         std::ostringstream ostr;

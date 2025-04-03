@@ -568,6 +568,14 @@ endif()
 add_definitions( -DGLM_FORCE_CTOR_INIT )
 
 #
+# Find zlib library, required
+#
+find_package(ZLIB REQUIRED)
+check_find_package_result( ZLIB_FOUND "ZLIB" )
+include_directories( SYSTEM ${ZLIB_INCLUDE_DIRS} )
+
+
+#
 # Find CURL library, required for github plugin
 #
 if( BUILD_GITHUB_PLUGIN )
@@ -976,6 +984,7 @@ add_subdirectory( plugins )             # 3D plugins must be built before kicad
 add_subdirectory( kicad )               # should follow pcbnew, eeschema
 add_subdirectory( tools )
 add_subdirectory( utils )
+add_subdirectory( thirdparty )
 
 if( KICAD_BUILD_QA_TESTS )
     add_subdirectory( qa )

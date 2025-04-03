@@ -21,6 +21,7 @@
 #include <stdexcept>
 #include <iomanip>
 #include <sstream>
+#include <wx/wx.h> // maui
 
 namespace SEXPR
 {
@@ -145,7 +146,8 @@ namespace SEXPR
         return static_cast< SEXPR_LIST* >(this);
     }
 
-    std::string SEXPR::AsString( size_t aLevel )
+    std::string SEXPR::AsString( size_t aLevel ) // maui
+    // std::string SEXPR::AsString( size_t aLevel ) const //kv6
     {
         std::string result;
 
@@ -156,7 +158,8 @@ namespace SEXPR
                 result = "\n";
             }
 
-            result.append( aLevel* 4, ' ' );
+            result.append( aLevel* 4, ' ' ); // maui
+            // result.append( aLevel* 2, ' ' ); //kv6
             aLevel++;
             result += "(";
 
@@ -164,6 +167,7 @@ namespace SEXPR
 
             for( std::vector<SEXPR *>::const_iterator it = list->begin(); it != list->end(); ++it )
             {
+                //wxLogMessage( "line string %s", AsString( aLevel ));  // maui debug
                 result += (*it)->AsString( aLevel );
 
                 if( it != list->end() - 1 )

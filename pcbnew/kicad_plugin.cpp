@@ -1105,8 +1105,9 @@ void PCB_IO::format( MODULE* aModule, int aNestLevel ) const
     {
         if( !bs3D->m_Filename.IsEmpty() )
         {
-            m_out->Print( aNestLevel+1, "(model %s\n",
-                          m_out->Quotew( bs3D->m_Filename ).c_str() );
+            m_out->Print( aNestLevel+1, "(model %s%s\n",  //"(model %s\n" maui
+                          m_out->Quotew( bs3D->m_Filename ).c_str(),
+                          bs3D->m_Preview ? "" : " hide" );  // maui
 
             /* Write 3D model offset in mm
              * 4.0.x wrote "at" which was actually in inches

@@ -73,6 +73,7 @@ void PARSE_ERROR::init( const wxString& aProblem, const char* aThrowersFile,
         int aLineNumber, int aByteIndex )
 {
     problem.Printf( PARSE_PROBLEM, aProblem.GetData(), aSource.GetData(), aLineNumber, aByteIndex );
+    // wxLogMessage( "line string %s", aInputLine);  // maui debug
 
     inputLine  = aInputLine;
     lineNumber = aLineNumber;

@@ -22,7 +22,13 @@ add_library( s3d_plugin_oce MODULE
         loadmodel.cpp
         )
 
-target_link_libraries( s3d_plugin_oce kicad_3dsg ${OCC_LIBRARIES} ${wxWidgets_LIBRARIES} )
+#target_link_libraries( s3d_plugin_oce kicad_3dsg ${OCC_LIBRARIES} ${wxWidgets_LIBRARIES} )
+target_link_libraries( s3d_plugin_oce kicad_3dsg ${OCC_LIBRARIES} ${wxWidgets_LIBRARIES} ${ZLIB_LIBRARIES} )
+
+target_include_directories( s3d_plugin_oce PRIVATE
+    $<TARGET_PROPERTY:gzip-hpp,INTERFACE_INCLUDE_DIRECTORIES>
+    )
+    
 
 if( APPLE )
     # puts library into the main kicad.app bundle in build tree

@@ -1,0 +1,51 @@
+https://gitlab.com/kicad/code/kicad/-/commits/6.0?search=stpz
+https://gitlab.com/kicad/code/kicad/-/commits/6.0?search=compression
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   3d-viewer/3d_rendering/3d_render_ogl_legacy/c3d_render_ogl_legacy.cpp
+        modified:   CMakeLists.txt
+        modified:   common/exceptions.cpp
+        modified:   pcbnew/kicad_plugin.cpp
+        modified:   pcbnew/pcb_parser.cpp
+        modified:   plugins/3d/oce/CMakeLists.txt
+        modified:   plugins/3d/oce/loadmodel.cpp
+        modified:   plugins/3d/oce/oce.cpp
+        modified:   plugins/3d/vrml/CMakeLists.txt
+        modified:   plugins/3d/vrml/vrml.cpp
+        modified:   utils/kicad2step/CMakeLists.txt
+        modified:   utils/kicad2step/pcb/oce_utils.cpp
+        modified:   utils/kicad2step/sexpr/sexpr.cpp
+        modified:   utils/kicad2step/sexpr/sexpr.h
+        modified:   utils/kicad2step/sexpr/sexpr_parser.cpp
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+            3d-viewer/3d_rendering/3d_render_ogl_legacy/c3d_render_ogl_legacy-test.cpp
+            pcbnew/pcb_parser-orig.cpp
+        stpz-support.txt
+        thirdparty/
+            utils/kicad2step/sexpr-5.zip
+            utils/kicad2step/sexpr/sexpr_parser-kv5.cpp.txt
+            utils/kicad2step/sexpr/sexpr_parser-kv6.cpp.txt
+
+
+
+
+C:\msys64\home\userC\kicad-RF-mx-gitlab\CMakeLists.txt
+C:\msys64\home\userC\kicad-RF-mx-gitlab\utils\kicad2step\CMakeLists.txt
+C:\msys64\home\userC\kicad-RF-mx-gitlab\thirdparty\CMakeLists.txt
+C:\msys64\home\userC\kicad-RF-mx-gitlab\thirdparty\gzip-hpp\CMakeLists.txt
+C:\msys64\home\userC\kicad-RF-mx-gitlab\plugins\3d\vrml\CMakeLists.txt
+C:\msys64\home\userC\kicad-RF-mx-gitlab\utils\kicad2step\pcb\oce_utils.cpp
+C:\msys64\home\userC\kicad-RF-mx-gitlab\plugins\3d\oce\loadmodel.cpp
+C:\msys64\home\userC\kicad-RF-mx-gitlab\plugins\3d\vrml\vrml.cpp
+C:\msys64\home\userC\kicad-RF-mx-gitlab\plugins\3d\oce\oce.cpp
+C:\msys64\home\userC\cp-k-5.bat
+
+
+C:\msys64\home\userC\kicad-RF-mx-gitlab\utils\kicad2step\sexpr\sexpr.h
+C:\msys64\home\userC\kicad-RF-mx-gitlab\utils\kicad2step\sexpr\sexpr.cpp
+C:\msys64\home\userC\kicad-RF-mx-gitlab\utils\kicad2step\sexpr\sexpr_parser.cpp
+C:\msys64\home\userC\kicad-RF-mx-gitlab\pcbnew\pcb_parser.cpp

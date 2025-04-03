@@ -1002,8 +1002,16 @@ void C3D_RENDER_OGL_LEGACY::render_3D_models( bool aRenderTopOrBot,
                 if( m_settings.ShouldModuleBeDisplayed( (MODULE_ATTR_T)module->GetAttributes() ) )
                     if( ( aRenderTopOrBot && !module->IsFlipped()) ||
                         (!aRenderTopOrBot &&  module->IsFlipped()) )
-                        render_3D_module( module, aRenderTransparentOnly );
+                        //wxLogMessage( wxT( "pass \n" ));
+                        render_3D_module( module, aRenderTransparentOnly );                        
         }
+            
+            /*if( !module->Models().empty() )
+                if( m_settings.ShouldModuleBeDisplayed( (MODULE_ATTR_T)module->GetAttributes() ) )
+                    if( ( aRenderTopOrBot && !module->IsFlipped()) ||
+                        (!aRenderTopOrBot &&  module->IsFlipped()) )
+                        render_3D_module( module, aRenderTransparentOnly );
+                        */
     }
 }
 
@@ -1044,7 +1052,7 @@ void C3D_RENDER_OGL_LEGACY::render_3D_module( const MODULE* module,
 
         while( sM != eM )
         {
-            if( !sM->m_Filename.empty() )
+            if( !sM->m_Filename.empty() & (sM->m_Preview==true) ) // maui
             {
                 // Check if the model is present in our cache map
                 if( m_3dmodel_map.find( sM->m_Filename ) != m_3dmodel_map.end() )

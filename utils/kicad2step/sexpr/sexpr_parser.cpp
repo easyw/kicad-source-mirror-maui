@@ -104,6 +104,7 @@ namespace SEXPR
                     }
 
                     SEXPR* item = parseString( aString, it );
+                    // list->AddChild( item.release() ); // maui
                     list->AddChild( item );
                 }
 

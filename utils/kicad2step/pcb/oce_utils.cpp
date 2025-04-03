@@ -1,4 +1,5 @@
 /*
+/*
  * This program source code file is part of KiCad, a free EDA CAD application.
  *
  * Copyright (C) 2016 Cirilo Bernardo <cirilo.bernardo@gmail.com>
@@ -26,8 +27,15 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <wx/wx.h>
 #include <wx/filename.h>
+#include <wx/filefn.h>
 #include <wx/log.h>
+#include <wx/stdpaths.h>
+#include <wx/wfstream.h>
+
+// #include <decompress.hpp>
+#include "../../thirdparty/gzip-hpp/decompress.hpp" // maui
 
 #include "oce_utils.h"
 #include "kicadpad.h"
@@ -57,6 +65,7 @@
 #include <BRepBuilderAPI.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
+#include <BRepBuilderAPI_GTransform.hxx>
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepPrimAPI_MakePrism.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
@@ -147,12 +156,14 @@ static void reverseCurve( KICADCURVE& aCurve )
 // supported file types
 enum FormatType
 {
-    FMT_NONE = 0,
-    FMT_STEP = 1,
-    FMT_IGES = 2,
-    FMT_EMN  = 3,
-    FMT_IDF  = 4,
-    FMT_WRL  = 5,  // .wrl files are replaced with MCAD equivalent
+    FMT_NONE,
+    FMT_STEP,
+    FMT_STEPZ,
+    FMT_IGES,
+    FMT_EMN,
+    FMT_IDF,
+    FMT_WRL,
+    FMT_WRZ
 };
 
 
@@ -172,15 +183,22 @@ FormatType fileType( const char* aFileName )
         return FMT_NONE;
     }
 
-    wxString ext = lfile.GetExt();
+    wxString ext = lfile.GetExt().Lower();
 
-    if( ext.Lower() == "wrl" )
+    if( ext == "wrl" )
         return FMT_WRL;
 
-    if( ext == "idf" || ext == "IDF" )
+    if( ext == "wrz" )
+        return FMT_WRZ;
+
+    if( ext == "idf" )
         return FMT_IDF;     // component outline
-    else if( ext == "emn" || ext == "EMN" )
+
+    if( ext == "emn" )
         return FMT_EMN;     // PCB assembly
+
+    if( ext == "stpz" || ext == "gz" )
+        return FMT_STEPZ;
 
     OPEN_ISTREAM( ifile, aFileName );
 
@@ -229,7 +247,7 @@ PCBMODEL::PCBMODEL()
     m_minDistance2 = MIN_LENGTH2;
     m_minx = 1.0e10;    // absurdly large number; any valid PCB X value will be smaller
     m_mincurve = m_curves.end();
-    BRepBuilderAPI::Precision( MIN_DISTANCE );
+    BRepBuilderAPI::Precision( 1.0e-6 );
     return;
 }
 
@@ -654,7 +672,6 @@ void PCBMODEL::SetPCBThickness( double aThickness )
     return;
 }
 
-
 void PCBMODEL::SetMinDistance( double aDistance )
 {
     // m_minDistance2 keeps a squared distance value
@@ -902,7 +919,9 @@ bool PCBMODEL::WriteSTEP( const std::string& aFileName )
 
     APIHeaderSection_MakeHeader hdr( writer.ChangeWriter().Model() );
     wxFileName fn( aFileName );
-    hdr.SetName( new TCollection_HAsciiString( fn.GetFullName().ToUTF8() ) );
+    // Note: use only Ascii7 chars, non Ascii7 chars (therefore UFT8 chars)
+    // are creating issues in the step file
+    hdr.SetName( new TCollection_HAsciiString( fn.GetFullName().ToAscii() ) );
     // TODO: how to control and ensure consistency with IGES?
     hdr.SetAuthorValue( 1, new TCollection_HAsciiString( "An Author" ) );
     hdr.SetOrganizationValue( 1, new TCollection_HAsciiString( "A Company" ) );
@@ -961,7 +980,62 @@ bool PCBMODEL::getModelLabel( const std::string aFileName, TDF_Label& aLabel )
             }
             break;
 
+        case FMT_STEPZ:
+        {
+            wxFileInputStream ifile( aFileName );
+            wxFileName outFile( aFileName );
+
+            outFile.SetPath( wxStandardPaths::Get().GetTempDir() );
+            outFile.SetExt( "STEP" );
+            
+            std::ostringstream ostr_;
+            ostr_ << "  * readSTEP() on filename '" << aFileName << "'\n";
+            wxLogMessage( "%s", ostr_.str().c_str() );
+            
+            wxFileOffset size = ifile.GetLength();
+
+            if( size == wxInvalidOffset )
+            {
+                // ReportMessage( wxString::Format( "readSTEP() failed on filename %s\n",
+                //                                  aFileName ) );
+                std::ostringstream ostr;
+                ostr << "  * readSTEP() failed on filename '" << aFileName << "'\n";
+                wxLogMessage( "%s", ostr.str().c_str() );
+                return false;
+            }
+
+            {
+                wxFileOutputStream ofile( outFile.GetFullPath() );
+
+                if( !ofile.IsOk() )
+                {
+                    // ReportMessage( wxString::Format( "readSTEP() failed on filename %s\n",
+                    //                                  outFile.GetFullPath() ) );
+                std::ostringstream ostr;
+                ostr << "  * readSTEP() failed on filename '" << aFileName << "'\n";
+                wxLogMessage( "%s", ostr.str().c_str() );
+                return false;
+                }
+
+                char *buffer = new char[size];
+
+                ifile.Read( buffer, size);
+                std::string expanded = gzip::decompress( buffer, size );
+
+                delete[] buffer;
+
+                ofile.Write( expanded.data(), expanded.size() );
+                ofile.Close();
+            }
+
+            // return getModelLabel( outFile.GetFullPath().ToStdString(), aScale, aLabel );
+            return getModelLabel( outFile.GetFullPath().ToStdString(), aLabel );
+            
+            break;
+        }
+
         case FMT_WRL:
+        case FMT_WRZ:
             /* WRL files are preferred for internal rendering,
              * due to superior material properties, etc.
              * However they are not suitable for MCAD export.
@@ -991,6 +1065,10 @@ bool PCBMODEL::getModelLabel( const std::string aFileName, TDF_Label& aLabel )
                 alts.Add( "STEP" );
                 alts.Add( "Stp" );
                 alts.Add( "Step" );
+                alts.Add( "stpz" );
+                alts.Add( "stpZ" );
+                alts.Add( "STPZ" );
+                alts.Add( "step.gz" );
 
                 // IGES files
                 alts.Add( "iges" );
@@ -1400,7 +1478,7 @@ bool OUTLINE::MakeShape( TopoDS_Shape& aShape, double aThickness )
         return false;   // there is already data in the shape object
 
     if( m_curves.empty() )
-        return true;    // suceeded in doing nothing
+        return true;    // succeeded in doing nothing
 
     if( !m_closed )
         return false;   // the loop is not closed

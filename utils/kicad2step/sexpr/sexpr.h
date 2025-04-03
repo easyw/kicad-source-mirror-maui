@@ -67,7 +67,8 @@ namespace SEXPR
         std::string const & GetString() const;
         std::string const & GetSymbol() const;
         SEXPR_LIST* GetList();
-        std::string AsString( size_t aLevel = 0);
+        // std::string AsString( size_t aLevel = 0) const; // kv6
+        std::string AsString( size_t aLevel = 0); // maui
         size_t GetLineNumber() { return m_lineNumber; }
     };
 

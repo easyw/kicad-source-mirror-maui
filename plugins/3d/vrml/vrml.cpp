@@ -32,6 +32,7 @@
  */
 
 #include <locale.h>
+#include <clocale> // maui
 #include <wx/log.h>
 #include <wx/filename.h>
 #include "richio.h"
@@ -41,7 +42,13 @@
 #include "vrml1_base.h"
 #include "vrml2_base.h"
 #include "x3d.h"
+#include <wx/stdpaths.h>
+#include <wx/string.h>
+#include <wx/wfstream.h>
+#include <wx/log.h>
 
+// #include <decompress.hpp>
+#include "../../thirdparty/gzip-hpp/decompress.hpp" // maui
 
 #define PLUGIN_VRML_MAJOR 1
 #define PLUGIN_VRML_MINOR 3
@@ -74,14 +81,16 @@ void GetPluginVersion( unsigned char* Major,
 }
 
 // number of extensions supported
+/* 
 #ifdef _WIN32
 #define NEXTS 2
 #else
 #define NEXTS 4
 #endif
+*/
 
 // number of filter sets supported
-#define NFILS 2
+/* #define NFILS 2
 
 static char ext0[] = "wrl";
 static char ext1[] = "x3d";
@@ -95,25 +104,26 @@ static char ext3[] = "X3D";
 static char fil0[] = "VRML 1.0/2.0 (*.wrl;*.WRL)|*.wrl;*.WRL";
 static char fil1[] = "X3D (*.x3d;*.X3D)|*.x3d;*.X3D";
 #endif
+*/
 
 static struct FILE_DATA
 {
-    char const* extensions[NEXTS];
-    char const* filters[NFILS];
+    // char const* extensions[NEXTS];
+    // char const* filters[NFILS];
+    std::vector<std::string> extensions;
+    std::vector<std::string> filters;
 
     FILE_DATA()
     {
-        extensions[0] = ext0;
-        extensions[1] = ext1;
-        filters[0] = fil0;
-        filters[1] = fil1;
-
-#ifndef _WIN32
-        extensions[2] = ext2;
-        extensions[3] = ext3;
+#ifdef _WIN32
+        extensions = { "wrl", "wrz", "x3d" };
+        filters = { "VRML 1.0/2.0 (*.wrl;*.wrz)|*.wrl;*.wrz",
+                    "X3D (*.x3d)|*.x3d" };
+#else
+        extensions = { "wrl", "WRL", "wrz", "WRZ", "x3d", "X3D" };
+        filters = { "VRML 1.0/2.0 (*.wrl;*.WRL;*.wrz;*.WRZ)|*.wrl;*.WRL;*.wrz;*.WRZ",
+                    "X3D (*.x3d;*.X3D)|*.x3d;*.X3D" };
 #endif
-
-        return;
     }
 
 } file_data;
@@ -121,31 +131,37 @@ static struct FILE_DATA
 
 int GetNExtensions( void )
 {
-    return NEXTS;
+    // return NEXTS;
+    return file_data.extensions.size();
 }
 
 
 char const* GetModelExtension( int aIndex )
 {
-    if( aIndex < 0 || aIndex >= NEXTS )
+    //if( aIndex < 0 || aIndex >= NEXTS )
+    if( aIndex < 0 || aIndex >= int( file_data.extensions.size() ) )
         return NULL;
 
-    return file_data.extensions[aIndex];
+    // return file_data.extensions[aIndex];
+    return file_data.extensions[aIndex].c_str();
 }
 
 
 int GetNFilters( void )
 {
-    return NFILS;
+    // return NFILS;
+    return file_data.filters.size();
 }
 
 
 char const* GetFileFilter( int aIndex )
 {
-    if( aIndex < 0 || aIndex >= NFILS )
+    //if( aIndex < 0 || aIndex >= NFILS )
+    if( aIndex < 0 || aIndex >= int( file_data.filters.size() ) )
         return NULL;
 
-    return file_data.filters[aIndex];
+    //return file_data.filters[aIndex];
+    return file_data.filters[aIndex].c_str();
 }
 
 
@@ -179,12 +195,48 @@ SCENEGRAPH* LoadVRML( const wxString& aFileName, bool useInline )
 {
     FILE_LINE_READER* modelFile = NULL;
     SCENEGRAPH* scene = NULL;
+    wxString filename = aFileName;
+    wxFileName tmpfilename;
+
+    if( aFileName.Upper().EndsWith( "WRZ" ) )
+    {
+        wxFileInputStream ifile( aFileName );
+        tmpfilename = wxFileName( aFileName );
+
+        tmpfilename.SetPath( wxStandardPaths::Get().GetTempDir() );
+        tmpfilename.SetExt( "WRL" );
+
+        wxFileOffset size = ifile.GetLength();
+
+        if( size == wxInvalidOffset )
+            return nullptr;
+
+        {
+            wxFileOutputStream ofile( tmpfilename.GetFullPath() );
+
+            if( !ofile.IsOk() )
+                return nullptr;
+
+            char *buffer = new char[size];
+
+            ifile.Read( buffer, size);
+            std::string expanded = gzip::decompress( buffer, size );
+
+            delete[] buffer;
+
+            ofile.Write( expanded.data(), expanded.size() );
+            ofile.Close();
+        }
+
+        filename = tmpfilename.GetFullPath();
+    }
 
     try
     {
         // set the max char limit to 8MB; if a VRML file contains
         // longer lines then perhaps it shouldn't be used
-        modelFile = new FILE_LINE_READER( aFileName, 0, 8388608 );
+        // modelFile = new FILE_LINE_READER( aFileName, 0, 8388608 );
+        modelFile = new FILE_LINE_READER( filename, 0, 8388608 );
     }
     catch( IO_ERROR & )
     {
@@ -195,6 +247,10 @@ SCENEGRAPH* LoadVRML( const wxString& aFileName, bool useInline )
 
     // VRML file processor
     WRLPROC proc( modelFile );
+
+    // Cleanup our temporary file
+    if( tmpfilename.IsOk() )
+        wxRemoveFile( tmpfilename.GetFullPath() );
 
     if( proc.GetVRMLType() == VRML_V1 )
     {

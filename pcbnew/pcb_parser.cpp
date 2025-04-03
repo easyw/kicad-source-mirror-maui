@@ -353,17 +353,21 @@ MODULE_3D_SETTINGS* PCB_PARSER::parse3DModel()
                  wxT( "Cannot parse " ) + GetTokenString( CurTok() ) + wxT( " as MODULE_3D_SETTINGS." ) );
 
     T token;
-
+    
     MODULE_3D_SETTINGS* n3D = new MODULE_3D_SETTINGS;
     NeedSYMBOLorNUMBER();
     n3D->m_Filename = FromUTF8();
 
+    // wxLogMessage( wxT( "filename %s \n" ), n3D->m_Filename );
+    
     for( token = NextTok();  token != T_RIGHT;  token = NextTok() )
     {
-        if( token != T_LEFT )
-            Expecting( T_LEFT );
+        if( token == T_LEFT )  // kv6
+            token = NextTok(); // kv6
 
-        token = NextTok();
+        /*if( token != T_LEFT )
+            Expecting( T_LEFT );
+        token = NextTok(); // kv5 */
 
         switch( token )
         {
@@ -383,8 +387,20 @@ MODULE_3D_SETTINGS* PCB_PARSER::parse3DModel()
             n3D->m_Offset.x = parseDouble( "x value" ) * 25.4f;
             n3D->m_Offset.y = parseDouble( "y value" ) * 25.4f;
             n3D->m_Offset.z = parseDouble( "z value" ) * 25.4f;
-            NeedRIGHT();
+
+            NeedRIGHT();    // xyz
+            NeedRIGHT();    // at kv6
             break;
+
+        case T_hide:
+            n3D->m_Preview = false; // maui
+            // wxLogMessage( wxT( "m_P=false %s \n" ), n3D->m_Filename );
+            break;
+
+        /*case T_opacity:  //kv6
+            n3D->m_Opacity = parseDouble( "opacity value" );
+            NeedRIGHT();
+            break;*/
 
         case T_offset:
             NeedLEFT();
@@ -399,7 +415,9 @@ MODULE_3D_SETTINGS* PCB_PARSER::parse3DModel()
             n3D->m_Offset.x = parseDouble( "x value" );
             n3D->m_Offset.y = parseDouble( "y value" );
             n3D->m_Offset.z = parseDouble( "z value" );
-            NeedRIGHT();
+
+            NeedRIGHT();    // xyz
+            NeedRIGHT();    // offset kv6
             break;
 
         case T_scale:
@@ -412,7 +430,8 @@ MODULE_3D_SETTINGS* PCB_PARSER::parse3DModel()
             n3D->m_Scale.x = parseDouble( "x value" );
             n3D->m_Scale.y = parseDouble( "y value" );
             n3D->m_Scale.z = parseDouble( "z value" );
-            NeedRIGHT();
+            NeedRIGHT();    // xyz
+            NeedRIGHT();    // scale // kv6
             break;
 
         case T_rotate:
@@ -425,14 +444,17 @@ MODULE_3D_SETTINGS* PCB_PARSER::parse3DModel()
             n3D->m_Rotation.x = parseDouble( "x value" );
             n3D->m_Rotation.y = parseDouble( "y value" );
             n3D->m_Rotation.z = parseDouble( "z value" );
-            NeedRIGHT();
+
+            NeedRIGHT();    // xyz
+            NeedRIGHT();    // rotate //kv6
             break;
 
         default:
-            Expecting( "at, offset, scale, or rotate" );
+            // Expecting( "at, offset, scale, or rotate" ); //maui
+            Expecting( "at, hide, opacity, offset, scale, or rotate" );
         }
 
-        NeedRIGHT();
+    //     NeedRIGHT(); //maui kv5
     }
 
     return n3D;
