@@ -49,7 +49,7 @@ S3D_PLUGIN_MANAGER::S3D_PLUGIN_MANAGER()
 {
     // create the initial file filter list entry
     // m_FileFilters.push_back( _( "All Files (*.*)|*.*" ) ); // maui filter
-    m_FileFilters.push_back( _( "All 3D Files (*.wrl;*.step;*.stp;*.iges;*.igs;*.x3d;*.emn;*.idf)|*.wrl;*.step;*.stp;*.iges;*.igs;*.x3d;*.emn;*.idf" ) );
+    m_FileFilters.push_back( _( "All 3D Files (*.wrl;*.step;*.stp;*.stpz;*.iges;*.igs;*.x3d;*.emn;*.idf)|*.wrl;*.step;*.stp;*.stpz;*.iges;*.igs;*.x3d;*.emn;*.idf" ) );
 
     // discover and load plugins
     loadPlugins();

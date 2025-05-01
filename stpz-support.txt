@@ -19,6 +19,9 @@ Changes not staged for commit:
         modified:   utils/kicad2step/sexpr/sexpr.cpp
         modified:   utils/kicad2step/sexpr/sexpr.h
         modified:   utils/kicad2step/sexpr/sexpr_parser.cpp
+        modified:   3d-viewer\3d_cache\3d_plugin_manager.cpp
+        modified:   build\release\kicad_build_version-maui.h
+        modified:   common\build_version.cpp
 
 Untracked files:
   (use "git add <file>..." to include in what will be committed)

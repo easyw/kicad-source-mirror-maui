@@ -161,6 +161,7 @@ set( KICAD_VERSION_EXTRA "" CACHE STRING
     "User defined configuration string to append to KiCad version." )
 
 # Generate version header file.
+# to change release version subst kicad_build_version.h w/ kicad_build_version1.h and edit kicad_build_version.h manually maui
 add_custom_target(
     version_header ALL
     COMMAND ${CMAKE_COMMAND}
