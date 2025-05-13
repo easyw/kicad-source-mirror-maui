@@ -4,6 +4,7 @@ https://gitlab.com/kicad/code/kicad/-/commits/6.0?search=compression
 Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
   (use "git restore <file>..." to discard changes in working directory)
+        modified:   3d-viewer\3d_rendering\3d_render_raytracing\c3d_render_createscene.cpp
         modified:   3d-viewer/3d_rendering/3d_render_ogl_legacy/c3d_render_ogl_legacy.cpp
         modified:   CMakeLists.txt
         modified:   common/exceptions.cpp
