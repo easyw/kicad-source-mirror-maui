@@ -24,7 +24,8 @@ DIALOG_GENDRILL_BASE::DIALOG_GENDRILL_BASE( wxWindow* parent, wxWindowID id, con
 	bupperSizer->Add( staticTextOutputDir, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 10 );
 
 	m_outputDirectoryName = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-	m_outputDirectoryName->SetMinSize( wxSize( -1,22 ) );
+	// m_outputDirectoryName->SetMinSize( wxSize( -1,22 ) );
+    m_outputDirectoryName->SetMinSize( wxSize( -1,-1 ) ); // maui
 
 	bupperSizer->Add( m_outputDirectoryName, 1, wxALIGN_CENTER_VERTICAL|wxLEFT, 0 );
 

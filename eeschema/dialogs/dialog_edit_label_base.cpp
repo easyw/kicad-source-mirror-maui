@@ -40,7 +40,8 @@ DIALOG_LABEL_EDITOR_BASE::DIALOG_LABEL_EDITOR_BASE( wxWindow* parent, wxWindowID
 	m_textEntrySizer->Add( m_labelMultiLine, 0, wxRIGHT, 5 );
 	
 	m_valueMultiLine = new wxTextCtrl( this, wxID_VALUEMULTI, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
-	m_valueMultiLine->SetMinSize( wxSize( 480,72 ) );
+	// m_valueMultiLine->SetMinSize( wxSize( 480,72 ) ); //maui
+    m_valueMultiLine->SetMinSize( wxSize( 480,108 ) );
 	
 	m_textEntrySizer->Add( m_valueMultiLine, 1, wxEXPAND|wxBOTTOM|wxLEFT, 3 );
 	

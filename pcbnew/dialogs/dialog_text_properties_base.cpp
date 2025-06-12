@@ -27,7 +27,8 @@ DIALOG_TEXT_PROPERTIES_BASE::DIALOG_TEXT_PROPERTIES_BASE( wxWindow* parent, wxWi
 
 	m_MultiLineText = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE );
 	m_MultiLineText->SetToolTip( _("Enter the text placed on selected layer.") );
-	m_MultiLineText->SetMinSize( wxSize( 400,60 ) );
+	// m_MultiLineText->SetMinSize( wxSize( 400,60 ) ); maui
+    m_MultiLineText->SetMinSize( wxSize( 400,120 ) );
 
 	m_MultiLineSizer->Add( m_MultiLineText, 1, wxBOTTOM|wxRIGHT|wxLEFT|wxEXPAND, 5 );
 

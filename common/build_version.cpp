@@ -27,8 +27,9 @@
 
 // The include file version.h is always created even if the repo version cannot be
 // determined.  In this case KICAD_BUILD_VERSION will default to "no-bzr".
-// #include <kicad_build_version.h> // maui
-#include <kicad_build_version-maui.h> // maui
+// in build\release\kicad_build_version.h
+#include <kicad_build_version.h> // maui
+//#include <kicad_build_version-maui.h> // maui
 
 
 /**
